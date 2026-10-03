@@ -3,192 +3,1881 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Gemini Web Tool Calling</title>
+        <meta name="color-scheme" content="light dark" />
+        <meta
+            name="description"
+            content="New in NYC is a collection of AI helpers for navigating apartments, events and gifts in New York City."
+        />
+        <title>New in NYC</title>
+
         <style>
+            :root {
+                color-scheme: light;
+
+                --bg: #f5f4ef;
+                --bg-strong: #ebe9e1;
+                --surface: #ffffff;
+                --surface-raised: #ffffff;
+                --surface-soft: rgba(255, 255, 255, 0.68);
+                --ink: #171916;
+                --ink-soft: #30352f;
+                --muted: #686e67;
+                --line: #dcded7;
+                --line-strong: #c4c8bf;
+                --yellow: #f8cf45;
+                --warn: #b42318;
+                --focus: #1265d8;
+
+                --shadow-sm: 0 1px 2px rgba(24, 29, 22, 0.06);
+                --shadow-md:
+                    0 1px 2px rgba(24, 29, 22, 0.05),
+                    0 14px 34px rgba(24, 29, 22, 0.08);
+                --shadow-lg:
+                    0 2px 5px rgba(24, 29, 22, 0.06),
+                    0 28px 70px rgba(24, 29, 22, 0.12);
+
+                --radius-sm: 12px;
+                --radius-md: 18px;
+                --radius-lg: 26px;
+                --radius-xl: 36px;
+
+                --c: #087a70;
+                --c-strong: #05665e;
+                --c-ink: #054d48;
+                --c-tint: #dff3ee;
+                --c-soft: #eef9f6;
+                --c-on: #ffffff;
+            }
+
+            .teal {
+                --c: #087a70;
+                --c-strong: #05665e;
+                --c-ink: #054d48;
+                --c-tint: #dff3ee;
+                --c-soft: #eef9f6;
+                --c-on: #ffffff;
+            }
+
+            .violet {
+                --c: #6151c8;
+                --c-strong: #5041b0;
+                --c-ink: #3f348f;
+                --c-tint: #e9e5fb;
+                --c-soft: #f5f3fd;
+                --c-on: #ffffff;
+            }
+
+            .coral {
+                --c: #c94631;
+                --c-strong: #ad3826;
+                --c-ink: #8f2e20;
+                --c-tint: #f8e3dd;
+                --c-soft: #fdf3f0;
+                --c-on: #ffffff;
+            }
+
+            @media (prefers-color-scheme: dark) {
+                :root {
+                    color-scheme: dark;
+
+                    --bg: #111411;
+                    --bg-strong: #1a1d19;
+                    --surface: #191d19;
+                    --surface-raised: #202520;
+                    --surface-soft: rgba(28, 33, 28, 0.72);
+                    --ink: #f3f3ed;
+                    --ink-soft: #dfe2db;
+                    --muted: #a8aea5;
+                    --line: #343a33;
+                    --line-strong: #4a5148;
+                    --yellow: #f4ca42;
+                    --warn: #ff9b91;
+                    --focus: #74adff;
+
+                    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.28);
+                    --shadow-md: 0 18px 44px rgba(0, 0, 0, 0.25);
+                    --shadow-lg: 0 30px 80px rgba(0, 0, 0, 0.36);
+                }
+
+                .teal {
+                    --c: #50c9ba;
+                    --c-strong: #6ed8cb;
+                    --c-ink: #86e5d9;
+                    --c-tint: #173631;
+                    --c-soft: #152824;
+                    --c-on: #10221f;
+                }
+
+                .violet {
+                    --c: #aea2ff;
+                    --c-strong: #c1b8ff;
+                    --c-ink: #cbc4ff;
+                    --c-tint: #2c2848;
+                    --c-soft: #24213a;
+                    --c-on: #1c1831;
+                }
+
+                .coral {
+                    --c: #ff947e;
+                    --c-strong: #ffad9c;
+                    --c-ink: #ffbaac;
+                    --c-tint: #45251f;
+                    --c-soft: #34201c;
+                    --c-on: #301711;
+                }
+            }
+
             * {
                 box-sizing: border-box;
                 margin: 0;
                 padding: 0;
             }
+
+            html {
+                min-width: 320px;
+                scroll-behavior: smooth;
+            }
+
             body {
-                font-family: system-ui, sans-serif;
-                height: 100vh;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                padding: 3rem 1rem;
+                min-height: 100vh;
+                overflow-x: hidden;
+                background:
+                    radial-gradient(circle at 12% 2%, color-mix(in srgb, var(--yellow) 18%, transparent) 0, transparent 26rem),
+                    radial-gradient(circle at 94% 24%, color-mix(in srgb, #73a7ff 10%, transparent) 0, transparent 30rem),
+                    var(--bg);
+                color: var(--ink);
+                font-family:
+                    Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+                font-size: 16px;
+                line-height: 1.55;
+                text-rendering: optimizeLegibility;
+                -webkit-font-smoothing: antialiased;
             }
-            #container {
-                width: 100%;
-                max-width: 900px;
-                display: flex;
-                flex-direction: column;
-                border: 1px solid #e0e0e0;
+
+            body::before {
+                position: fixed;
+                z-index: -1;
+                inset: 0;
+                background-image:
+                    linear-gradient(color-mix(in srgb, var(--ink) 2.8%, transparent) 1px, transparent 1px),
+                    linear-gradient(90deg, color-mix(in srgb, var(--ink) 2.8%, transparent) 1px, transparent 1px);
+                background-size: 48px 48px;
+                content: "";
+                mask-image: linear-gradient(to bottom, black, transparent 72%);
+                pointer-events: none;
             }
-            #messages {
-                overflow-y: auto;
-                padding: 2rem;
-                display: flex;
-                flex-direction: column;
-                gap: 1.5rem;
-                min-height: 450px;
-                max-height: 70vh;
+
+            button,
+            input {
+                color: inherit;
+                font: inherit;
             }
-            .msg {
-                line-height: 1.5;
-                max-width: 80%;
+
+            button,
+            a,
+            input,
+            summary {
+                -webkit-tap-highlight-color: transparent;
             }
-            .msg.user {
-                align-self: flex-end;
-                text-align: right;
-            }
-            .msg .role {
-                font-size: 0.75rem;
-                text-transform: uppercase;
-                letter-spacing: 0.05em;
-                color: #999;
-                margin-bottom: 0.25rem;
-            }
-            .msg.loading .content {
-                color: #999;
-            }
-            #input-area {
-                display: flex;
-                gap: 1rem;
-                padding: 1.5rem;
-                border-top: 1px solid #e0e0e0;
-            }
-            #user-input {
-                flex: 1;
-                padding: 0.75rem 0;
-                border: none;
-                border-bottom: 1px solid #e0e0e0;
-                font-size: 1rem;
-                outline: none;
-            }
-            #user-input:focus {
-                border-bottom-color: #000;
-            }
+
             button {
-                padding: 0.75rem 1.5rem;
-                background: #000;
-                color: #fff;
-                border: none;
-                font-size: 0.75rem;
-                text-transform: uppercase;
-                letter-spacing: 0.05em;
+                border: 0;
+            }
+
+            button:not(:disabled),
+            summary,
+            a {
                 cursor: pointer;
             }
+
+            button:focus-visible,
+            a:focus-visible,
+            input:focus-visible,
+            summary:focus-visible {
+                outline: 3px solid color-mix(in srgb, var(--focus) 68%, transparent);
+                outline-offset: 3px;
+            }
+
+            ::selection {
+                background: color-mix(in srgb, var(--c) 28%, transparent);
+            }
+
+            .view {
+                display: none;
+            }
+
+            .view.active {
+                display: block;
+                animation: reveal 280ms ease-out both;
+            }
+
+            .wrap {
+                width: min(100% - 40px, 1160px);
+                margin-inline: auto;
+            }
+
+            .brand {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.72rem;
+                color: var(--ink);
+                font-size: 0.95rem;
+                font-weight: 780;
+                letter-spacing: -0.01em;
+                text-decoration: none;
+            }
+
+            .brand-mark {
+                display: grid;
+                width: 2.25rem;
+                height: 2.25rem;
+                border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+                border-radius: 11px;
+                background: var(--yellow);
+                box-shadow: var(--shadow-sm);
+                color: #191a17;
+                font-size: 0.78rem;
+                letter-spacing: -0.04em;
+                place-items: center;
+                transform: rotate(-3deg);
+            }
+
+            .eyebrow {
+                display: flex;
+                align-items: center;
+                gap: 0.6rem;
+                color: var(--muted);
+                font-size: 0.76rem;
+                font-weight: 760;
+                letter-spacing: 0.12em;
+                text-transform: uppercase;
+            }
+
+            .eyebrow::before {
+                width: 1.5rem;
+                height: 2px;
+                border-radius: 99px;
+                background: var(--c, var(--ink));
+                content: "";
+            }
+
+            /* Home */
+
+            .home-shell {
+                display: flex;
+                min-height: 100vh;
+                flex-direction: column;
+                padding-block: 1.35rem 2rem;
+            }
+
+            .home-nav {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .course-label {
+                color: var(--muted);
+                font-size: 0.78rem;
+                font-weight: 650;
+                letter-spacing: 0.04em;
+            }
+
+            .home-main {
+                display: grid;
+                flex: 1;
+                align-content: center;
+                padding-block: clamp(4rem, 10vh, 7.5rem);
+            }
+
+            .home-intro {
+                display: grid;
+                grid-template-columns: minmax(0, 1.35fr) minmax(17rem, 0.65fr);
+                gap: clamp(2rem, 8vw, 7rem);
+                align-items: end;
+            }
+
+            h1 {
+                max-width: 780px;
+                margin-top: 1.15rem;
+                font-size: clamp(3.35rem, 8vw, 7.2rem);
+                font-weight: 850;
+                letter-spacing: -0.072em;
+                line-height: 0.88;
+            }
+
+            h1 .nyc {
+                position: relative;
+                display: inline-block;
+                z-index: 0;
+                color: #181915;
+            }
+
+            h1 .nyc::before {
+                position: absolute;
+                z-index: -1;
+                inset: 0.06em -0.1em -0.02em;
+                border-radius: 0.14em 0.22em 0.16em 0.1em;
+                background: var(--yellow);
+                content: "";
+                transform: rotate(-1.5deg);
+            }
+
+            .lead {
+                max-width: 31rem;
+                color: var(--ink-soft);
+                font-size: clamp(1.05rem, 2vw, 1.25rem);
+                line-height: 1.55;
+            }
+
+            .lead strong {
+                color: var(--ink);
+                font-weight: 720;
+            }
+
+            #cards {
+                display: grid;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 1rem;
+                margin-top: clamp(2.8rem, 6vw, 5.4rem);
+            }
+
+            .card {
+                position: relative;
+                min-height: 292px;
+                overflow: hidden;
+                padding: 1.35rem;
+                border: 1px solid var(--line);
+                border-radius: var(--radius-lg);
+                background: color-mix(in srgb, var(--surface) 94%, var(--c-tint));
+                box-shadow: var(--shadow-md);
+                color: var(--ink);
+                text-align: left;
+                transition:
+                    border-color 180ms ease,
+                    box-shadow 180ms ease,
+                    transform 180ms ease;
+            }
+
+            .card::after {
+                position: absolute;
+                right: -3.5rem;
+                bottom: -4.5rem;
+                width: 12rem;
+                height: 12rem;
+                border-radius: 50%;
+                background: var(--c-tint);
+                content: "";
+                opacity: 0.72;
+                pointer-events: none;
+                transition: transform 250ms ease;
+            }
+
+            .card-inner {
+                position: relative;
+                z-index: 1;
+                display: flex;
+                height: 100%;
+                flex-direction: column;
+            }
+
+            .card-top {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 1rem;
+            }
+
+            .icon {
+                display: grid;
+                width: 3.4rem;
+                height: 3.4rem;
+                flex: 0 0 auto;
+                border: 1px solid color-mix(in srgb, var(--c) 14%, var(--line));
+                border-radius: 17px;
+                background: var(--c-tint);
+                box-shadow: inset 0 1px color-mix(in srgb, white 58%, transparent);
+                font-size: 1.55rem;
+                place-items: center;
+            }
+
+            .status {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.42rem;
+                padding: 0.28rem 0.6rem;
+                border: 1px solid var(--line);
+                border-radius: 999px;
+                background: var(--surface-soft);
+                color: var(--muted);
+                font-size: 0.7rem;
+                font-weight: 760;
+                letter-spacing: 0.075em;
+                text-transform: uppercase;
+            }
+
+            .status::before {
+                width: 0.42rem;
+                height: 0.42rem;
+                border-radius: 50%;
+                background: var(--line-strong);
+                content: "";
+            }
+
+            .card:not(:disabled) .status {
+                border-color: color-mix(in srgb, var(--c) 30%, var(--line));
+                color: var(--c-ink);
+            }
+
+            .card:not(:disabled) .status::before {
+                background: var(--c);
+                box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 15%, transparent);
+            }
+
+            .card-copy {
+                margin-top: 2.15rem;
+            }
+
+            .card h2 {
+                font-size: 1.55rem;
+                font-weight: 790;
+                letter-spacing: -0.035em;
+                line-height: 1.1;
+            }
+
+            .card p {
+                max-width: 28rem;
+                margin-top: 0.7rem;
+                color: var(--muted);
+                font-size: 0.94rem;
+                line-height: 1.52;
+            }
+
+            .card .go {
+                display: flex;
+                align-items: center;
+                gap: 0.55rem;
+                margin-top: auto;
+                padding-top: 2rem;
+                color: var(--c-ink);
+                font-size: 0.88rem;
+                font-weight: 760;
+            }
+
+            .card .arrow {
+                display: grid;
+                width: 1.8rem;
+                height: 1.8rem;
+                border-radius: 50%;
+                background: var(--c);
+                color: var(--c-on);
+                font-size: 1rem;
+                place-items: center;
+                transition: transform 180ms ease;
+            }
+
+            .card:disabled {
+                box-shadow: var(--shadow-sm);
+                cursor: not-allowed;
+            }
+
+            .card:disabled .icon,
+            .card:disabled .card-copy,
+            .card:disabled .go {
+                opacity: 0.68;
+            }
+
+            .card:disabled .go {
+                color: var(--muted);
+            }
+
+            .card:hover:not(:disabled) {
+                border-color: color-mix(in srgb, var(--c) 50%, var(--line));
+                box-shadow: var(--shadow-lg);
+                transform: translateY(-6px);
+            }
+
+            .card:hover:not(:disabled)::after {
+                transform: scale(1.14);
+            }
+
+            .card:hover:not(:disabled) .arrow {
+                transform: translateX(3px);
+            }
+
+            .home-footer {
+                display: grid;
+                grid-template-columns: 1fr minmax(18rem, 37rem);
+                gap: 2rem;
+                align-items: end;
+                padding-top: 2.4rem;
+                border-top: 1px solid var(--line);
+                color: var(--muted);
+                font-size: 0.76rem;
+                line-height: 1.55;
+            }
+
+            .home-footer .credit {
+                color: var(--ink-soft);
+                font-weight: 650;
+            }
+
+            /* Helper page */
+
+            #section {
+                min-height: 100vh;
+            }
+
+            .section-shell {
+                width: min(100% - 40px, 1240px);
+                margin-inline: auto;
+                padding-block: 1.15rem 2.5rem;
+            }
+
+            .section-nav {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                min-height: 3rem;
+                gap: 1rem;
+            }
+
+            #back {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.55rem;
+                min-height: 2.65rem;
+                padding: 0.45rem 0.85rem;
+                border: 1px solid transparent;
+                border-radius: 999px;
+                color: var(--muted);
+                font-size: 0.88rem;
+                font-weight: 680;
+                text-decoration: none;
+                transition:
+                    background 160ms ease,
+                    border-color 160ms ease,
+                    color 160ms ease;
+            }
+
+            #back::before {
+                content: "←";
+                font-size: 1.05rem;
+                transition: transform 160ms ease;
+            }
+
+            #back:hover {
+                border-color: var(--line);
+                background: var(--surface-soft);
+                color: var(--ink);
+            }
+
+            #back:hover::before {
+                transform: translateX(-2px);
+            }
+
+            .helper-status {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.48rem;
+                color: var(--muted);
+                font-size: 0.76rem;
+                font-weight: 700;
+            }
+
+            .helper-status::before {
+                width: 0.5rem;
+                height: 0.5rem;
+                border-radius: 50%;
+                background: var(--c);
+                box-shadow: 0 0 0 4px color-mix(in srgb, var(--c) 14%, transparent);
+                content: "";
+            }
+
+            .helper-layout {
+                display: grid;
+                grid-template-columns: minmax(18rem, 0.74fr) minmax(30rem, 1.26fr);
+                gap: clamp(1.25rem, 3vw, 2.5rem);
+                align-items: start;
+                margin-top: clamp(1.3rem, 4vw, 3.2rem);
+            }
+
+            .helper-intro {
+                position: sticky;
+                top: 1.4rem;
+            }
+
+            .hero {
+                position: relative;
+                overflow: hidden;
+                padding: clamp(1.4rem, 3vw, 2rem);
+                border: 1px solid color-mix(in srgb, var(--c) 20%, var(--line));
+                border-radius: var(--radius-xl);
+                background:
+                    linear-gradient(145deg, color-mix(in srgb, var(--surface) 82%, var(--c-tint)), var(--c-soft));
+                box-shadow: var(--shadow-md);
+            }
+
+            .hero::after {
+                position: absolute;
+                z-index: 0;
+                top: -6rem;
+                right: -5rem;
+                width: 15rem;
+                height: 15rem;
+                border: 2.2rem solid color-mix(in srgb, var(--c) 8%, transparent);
+                border-radius: 50%;
+                content: "";
+                pointer-events: none;
+            }
+
+            .hero-content {
+                position: relative;
+                z-index: 1;
+            }
+
+            .hero .icon {
+                border-color: color-mix(in srgb, var(--c) 20%, var(--line));
+                background: var(--surface);
+                box-shadow: var(--shadow-sm);
+            }
+
+            .hero h2 {
+                max-width: 28rem;
+                margin-top: 1.65rem;
+                font-size: clamp(2rem, 4vw, 3.15rem);
+                font-weight: 830;
+                letter-spacing: -0.055em;
+                line-height: 1;
+            }
+
+            .hero > .hero-content > p {
+                max-width: 32rem;
+                margin-top: 0.95rem;
+                color: var(--ink-soft);
+                font-size: 0.98rem;
+                line-height: 1.6;
+            }
+
+            .row {
+                margin-top: 1.55rem;
+                padding-top: 1.4rem;
+                border-top: 1px solid color-mix(in srgb, var(--c) 16%, var(--line));
+            }
+
+            .row-label {
+                margin-bottom: 0.7rem;
+                color: var(--muted);
+                font-size: 0.69rem;
+                font-weight: 790;
+                letter-spacing: 0.12em;
+                text-transform: uppercase;
+            }
+
+            .chips {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.48rem;
+            }
+
+            .chip {
+                min-height: 2.25rem;
+                padding: 0.4rem 0.76rem;
+                border: 1px solid var(--line);
+                border-radius: 999px;
+                background: var(--surface);
+                box-shadow: var(--shadow-sm);
+                color: var(--ink-soft);
+                font-size: 0.8rem;
+                font-weight: 650;
+                transition:
+                    background 150ms ease,
+                    border-color 150ms ease,
+                    color 150ms ease,
+                    transform 150ms ease;
+            }
+
+            .chip:hover {
+                border-color: var(--c);
+                transform: translateY(-1px);
+            }
+
+            .chip[aria-pressed="true"] {
+                border-color: var(--c);
+                background: var(--c);
+                color: var(--c-on);
+            }
+
+            #examples {
+                display: grid;
+                gap: 0.52rem;
+            }
+
+            .example {
+                position: relative;
+                width: 100%;
+                min-height: 3rem;
+                padding: 0.72rem 2.2rem 0.72rem 0.85rem;
+                border: 1px solid var(--line);
+                border-radius: 13px;
+                background: var(--surface);
+                box-shadow: var(--shadow-sm);
+                color: var(--ink-soft);
+                font-size: 0.8rem;
+                font-weight: 570;
+                line-height: 1.4;
+                text-align: left;
+                transition:
+                    border-color 150ms ease,
+                    color 150ms ease,
+                    transform 150ms ease;
+            }
+
+            .example::after {
+                position: absolute;
+                top: 50%;
+                right: 0.85rem;
+                color: var(--c);
+                content: "↗";
+                font-size: 1rem;
+                transform: translateY(-50%);
+            }
+
+            .example:hover {
+                border-color: var(--c);
+                color: var(--ink);
+                transform: translateX(2px);
+            }
+
+            /* Chat */
+
+            .chat {
+                display: flex;
+                min-height: min(760px, calc(100vh - 7rem));
+                overflow: hidden;
+                flex-direction: column;
+                border: 1px solid var(--line);
+                border-radius: var(--radius-xl);
+                background: var(--surface);
+                box-shadow: var(--shadow-lg);
+            }
+
+            .chat-head {
+                display: flex;
+                min-height: 5.2rem;
+                align-items: center;
+                justify-content: space-between;
+                gap: 1rem;
+                padding: 1rem 1.25rem 1rem 1.5rem;
+                border-bottom: 1px solid var(--line);
+                background: color-mix(in srgb, var(--surface) 94%, var(--c-tint));
+            }
+
+            .chat-title-group {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+            }
+
+            .chat-avatar {
+                display: grid;
+                width: 2.55rem;
+                height: 2.55rem;
+                border-radius: 13px;
+                background: var(--c-tint);
+                font-size: 1.15rem;
+                place-items: center;
+            }
+
+            #section-title {
+                display: block;
+                font-size: 0.98rem;
+                font-weight: 780;
+                letter-spacing: -0.015em;
+            }
+
+            .chat-subtitle {
+                display: block;
+                margin-top: 0.08rem;
+                color: var(--muted);
+                font-size: 0.7rem;
+                font-weight: 560;
+            }
+
+            #new-chat {
+                min-height: 2.35rem;
+                padding: 0.38rem 0.78rem;
+                border: 1px solid var(--line);
+                border-radius: 999px;
+                background: var(--surface);
+                color: var(--ink-soft);
+                font-size: 0.76rem;
+                font-weight: 700;
+                transition:
+                    border-color 150ms ease,
+                    background 150ms ease,
+                    color 150ms ease;
+            }
+
+            #new-chat:hover {
+                border-color: var(--c);
+                background: var(--c-soft);
+                color: var(--c-ink);
+            }
+
+            #messages-host {
+                display: flex;
+                min-height: 0;
+                flex: 1;
+            }
+
+            .messages {
+                display: flex;
+                width: 100%;
+                min-height: 300px;
+                max-height: calc(100vh - 14.5rem);
+                overflow-y: auto;
+                flex-direction: column;
+                gap: 0.85rem;
+                padding: clamp(1rem, 3vw, 1.6rem);
+                scroll-behavior: smooth;
+                scrollbar-color: var(--line-strong) transparent;
+                scrollbar-width: thin;
+            }
+
+            .empty {
+                display: grid;
+                width: min(100%, 22rem);
+                margin: auto;
+                color: var(--muted);
+                font-size: 0.9rem;
+                line-height: 1.55;
+                text-align: center;
+                place-items: center;
+            }
+
+            .empty::before {
+                display: grid;
+                width: 3.1rem;
+                height: 3.1rem;
+                margin-bottom: 0.9rem;
+                border: 1px solid color-mix(in srgb, var(--c) 22%, var(--line));
+                border-radius: 16px;
+                background: var(--c-soft);
+                color: var(--c-ink);
+                content: "✦";
+                font-size: 1.1rem;
+                place-items: center;
+            }
+
+            .msg {
+                animation: message-in 240ms ease-out both;
+            }
+
+            .msg.user {
+                align-self: flex-end;
+                max-width: min(86%, 35rem);
+                padding: 0.72rem 0.95rem;
+                border-radius: 18px 18px 5px 18px;
+                background: var(--c);
+                box-shadow: var(--shadow-sm);
+                color: var(--c-on);
+                font-size: 0.92rem;
+                line-height: 1.52;
+                white-space: pre-wrap;
+            }
+
+            .msg.assistant {
+                align-self: flex-start;
+                width: min(94%, 39rem);
+                padding: 0.9rem 1rem;
+                border: 1px solid var(--line);
+                border-radius: 5px 18px 18px;
+                background: var(--surface-raised);
+                box-shadow: var(--shadow-sm);
+                color: var(--ink-soft);
+                font-size: 0.91rem;
+                line-height: 1.6;
+            }
+
+            .msg.assistant > * + * {
+                margin-top: 0.7rem;
+            }
+
+            .msg.assistant h4 {
+                color: var(--ink);
+                font-size: 1rem;
+                font-weight: 770;
+                letter-spacing: -0.015em;
+            }
+
+            .msg.assistant ul,
+            .msg.assistant ol {
+                padding-left: 1.25rem;
+            }
+
+            .msg.assistant li + li {
+                margin-top: 0.25rem;
+            }
+
+            .msg.assistant hr {
+                border: 0;
+                border-top: 1px solid var(--line);
+            }
+
+            .msg.assistant code {
+                padding: 0.1rem 0.28rem;
+                border: 1px solid var(--line);
+                border-radius: 5px;
+                background: var(--bg);
+                color: var(--ink);
+                font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+                font-size: 0.82em;
+            }
+
+            .msg.loading {
+                display: flex;
+                width: auto;
+                align-items: center;
+                gap: 0.65rem;
+                color: var(--muted);
+            }
+
+            .msg.loading::after {
+                width: 2rem;
+                height: 0.55rem;
+                background:
+                    radial-gradient(circle, var(--c) 45%, transparent 48%) 0 50% / 0.55rem 0.55rem no-repeat,
+                    radial-gradient(circle, var(--c) 45%, transparent 48%) 50% 50% / 0.55rem 0.55rem no-repeat,
+                    radial-gradient(circle, var(--c) 45%, transparent 48%) 100% 50% / 0.55rem 0.55rem no-repeat;
+                content: "";
+                animation: loading-pulse 1.05s ease-in-out infinite;
+            }
+
+            /* Tool calls */
+
             .tool {
-                font-family: ui-monospace, monospace;
-                font-size: 0.75rem;
-                color: #555;
-                background: #f5f5f5;
-                border-left: 3px solid #f59e0b;
-                padding: 0.5rem 0.75rem;
-                margin: 0.25rem 0 0.75rem;
+                align-self: flex-start;
+                width: min(94%, 39rem);
+                overflow: hidden;
+                border: 1px solid color-mix(in srgb, var(--c) 22%, var(--line));
+                border-radius: 14px;
+                background: var(--c-soft);
+                animation: message-in 240ms ease-out both;
+            }
+
+            .tool summary {
+                position: relative;
+                min-height: 3rem;
+                padding: 0.72rem 2.3rem 0.72rem 2.55rem;
+                color: var(--muted);
+                font-size: 0.76rem;
+                line-height: 1.45;
+                list-style: none;
+            }
+
+            .tool summary::-webkit-details-marker {
+                display: none;
+            }
+
+            .tool summary::before {
+                position: absolute;
+                top: 50%;
+                left: 0.85rem;
+                display: grid;
+                width: 1.15rem;
+                height: 1.15rem;
+                border-radius: 5px;
+                background: var(--c);
+                color: var(--c-on);
+                content: "✓";
+                font-size: 0.68rem;
+                font-weight: 900;
+                place-items: center;
+                transform: translateY(-50%);
+            }
+
+            .tool summary::after {
+                position: absolute;
+                top: 50%;
+                right: 0.85rem;
+                color: var(--c-ink);
+                content: "⌄";
+                font-size: 1rem;
+                transform: translateY(-55%);
+                transition: transform 160ms ease;
+            }
+
+            .tool[open] summary::after {
+                transform: translateY(-45%) rotate(180deg);
+            }
+
+            .tool .label {
+                color: var(--c-ink);
+                font-weight: 790;
+            }
+
+            .tool .note {
+                color: var(--warn);
+                font-weight: 680;
+            }
+
+            .tool pre {
+                max-height: 18rem;
+                overflow: auto;
+                margin: 0;
+                padding: 0.85rem 1rem 1rem;
+                border-top: 1px solid color-mix(in srgb, var(--c) 18%, var(--line));
+                background: color-mix(in srgb, var(--surface) 84%, var(--c-soft));
+                color: var(--muted);
+                font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+                font-size: 0.68rem;
+                line-height: 1.55;
                 white-space: pre-wrap;
                 word-break: break-word;
             }
-            .tool .label {
-                text-transform: uppercase;
-                letter-spacing: 0.05em;
-                color: #b45309;
+
+            /* Composer */
+
+            #input-area {
+                display: flex;
+                gap: 0.6rem;
+                align-items: center;
+                padding: 0.9rem;
+                border-top: 1px solid var(--line);
+                background: color-mix(in srgb, var(--surface) 92%, var(--bg));
             }
-            button:disabled {
-                opacity: 0.3;
+
+            .input-shell {
+                display: flex;
+                min-width: 0;
+                flex: 1;
+                align-items: center;
+                border: 1px solid var(--line);
+                border-radius: 16px;
+                background: var(--surface);
+                box-shadow: var(--shadow-sm);
+                transition:
+                    border-color 150ms ease,
+                    box-shadow 150ms ease;
+            }
+
+            .input-shell:focus-within {
+                border-color: var(--c);
+                box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 13%, transparent);
+            }
+
+            #user-input {
+                width: 100%;
+                min-width: 0;
+                min-height: 3.15rem;
+                padding: 0.75rem 0.9rem;
+                border: 0;
+                outline: 0;
+                background: transparent;
+                color: var(--ink);
+                font-size: 0.88rem;
+            }
+
+            #user-input::placeholder {
+                color: color-mix(in srgb, var(--muted) 80%, transparent);
+                opacity: 1;
+            }
+
+            #send-btn {
+                display: grid;
+                min-width: 4.5rem;
+                min-height: 3.15rem;
+                padding: 0.68rem 1rem;
+                border-radius: 16px;
+                background: var(--c);
+                box-shadow: var(--shadow-sm);
+                color: var(--c-on);
+                font-size: 0.86rem;
+                font-weight: 780;
+                place-items: center;
+                transition:
+                    background 150ms ease,
+                    transform 150ms ease,
+                    opacity 150ms ease;
+            }
+
+            #send-btn:hover:not(:disabled) {
+                background: var(--c-strong);
+                transform: translateY(-1px);
+            }
+
+            #send-btn:active:not(:disabled) {
+                transform: translateY(0);
+            }
+
+            #send-btn:disabled {
+                cursor: not-allowed;
+                opacity: 0.48;
+            }
+
+            @keyframes reveal {
+                from {
+                    opacity: 0;
+                    transform: translateY(5px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            @keyframes message-in {
+                from {
+                    opacity: 0;
+                    transform: translateY(7px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            @keyframes loading-pulse {
+                0%,
+                100% {
+                    opacity: 0.35;
+                    transform: translateY(0);
+                }
+                50% {
+                    opacity: 1;
+                    transform: translateY(-2px);
+                }
+            }
+
+            @media (max-width: 900px) {
+                .home-intro {
+                    grid-template-columns: 1fr;
+                    gap: 1.4rem;
+                }
+
+                .lead {
+                    max-width: 40rem;
+                }
+
+                #cards {
+                    grid-template-columns: 1fr;
+                }
+
+                .card {
+                    min-height: 230px;
+                }
+
+                .home-footer {
+                    grid-template-columns: 1fr;
+                    gap: 0.7rem;
+                }
+
+                .helper-layout {
+                    grid-template-columns: 1fr;
+                }
+
+                .helper-intro {
+                    position: static;
+                }
+
+                .hero h2 {
+                    max-width: 36rem;
+                }
+
+                .chat {
+                    min-height: 680px;
+                }
+
+                .messages {
+                    max-height: 62vh;
+                }
+            }
+
+            @media (max-width: 560px) {
+                .wrap,
+                .section-shell {
+                    width: min(100% - 24px, 1240px);
+                }
+
+                .home-shell {
+                    padding-top: 0.85rem;
+                }
+
+                .course-label {
+                    display: none;
+                }
+
+                .home-main {
+                    padding-block: 3.6rem 4.2rem;
+                }
+
+                h1 {
+                    font-size: clamp(3.2rem, 18vw, 5rem);
+                }
+
+                .lead {
+                    font-size: 1.02rem;
+                }
+
+                #cards {
+                    margin-top: 2.6rem;
+                }
+
+                .card {
+                    min-height: 244px;
+                    border-radius: 22px;
+                }
+
+                .home-footer {
+                    padding-top: 1.7rem;
+                }
+
+                .section-shell {
+                    padding-bottom: 1rem;
+                }
+
+                .helper-status {
+                    display: none;
+                }
+
+                .helper-layout {
+                    margin-top: 0.9rem;
+                }
+
+                .hero,
+                .chat {
+                    border-radius: 23px;
+                }
+
+                .hero {
+                    padding: 1.2rem;
+                }
+
+                .hero h2 {
+                    font-size: 2.2rem;
+                }
+
+                .chat {
+                    min-height: 640px;
+                }
+
+                .chat-head {
+                    min-height: 4.7rem;
+                    padding-inline: 0.9rem;
+                }
+
+                .chat-avatar {
+                    display: none;
+                }
+
+                #new-chat {
+                    padding-inline: 0.65rem;
+                    font-size: 0.7rem;
+                }
+
+                .messages {
+                    max-height: 66vh;
+                    padding: 1rem 0.85rem;
+                }
+
+                .msg.user {
+                    max-width: 91%;
+                }
+
+                .msg.assistant,
+                .tool {
+                    width: 97%;
+                }
+
+                #input-area {
+                    gap: 0.45rem;
+                    padding: 0.7rem;
+                }
+
+                #send-btn {
+                    min-width: 4rem;
+                    padding-inline: 0.7rem;
+                }
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                html {
+                    scroll-behavior: auto;
+                }
+
+                *,
+                *::before,
+                *::after {
+                    animation-duration: 0.01ms !important;
+                    animation-iteration-count: 1 !important;
+                    scroll-behavior: auto !important;
+                    transition-duration: 0.01ms !important;
+                }
             }
         </style>
     </head>
+
     <body>
-        <div id="container">
-            <div id="messages"></div>
-            <div id="input-area">
-                <input
-                    type="text"
-                    id="user-input"
-                    placeholder="Type a message..."
-                    autocomplete="off"
-                />
-                <button id="send-btn">Send</button>
+        <div id="home" class="view">
+            <div class="wrap home-shell">
+                <nav class="home-nav" aria-label="Site">
+                    <a class="brand" href="#" aria-label="New in NYC home">
+                        <span class="brand-mark" aria-hidden="true">NYC</span>
+                        <span>New in NYC</span>
+                    </a>
+                    <span class="course-label">A three-student IEOR 4570 project</span>
+                </nav>
+
+                <main class="home-main">
+                    <div class="home-intro">
+                        <div>
+                            <p class="eyebrow">AI city helpers for newcomers</p>
+                            <h1>New in <span class="nyc">NYC</span></h1>
+                        </div>
+
+                        <p class="lead">
+                            Get oriented without opening twenty tabs.
+                            <strong>Pick a helper, ask one focused question and see which records it checks.</strong>
+                        </p>
+                    </div>
+
+                    <div id="cards" aria-label="Choose a helper"></div>
+                </main>
+
+                <footer class="home-footer">
+                    <p class="credit">Built by a team of three for Columbia University IEOR 4570.</p>
+                    <p>
+                        Apartment facts come from NYC Open Data, NYC GeoSearch and New York State's subway station
+                        list. City records can be incomplete: an empty record does not prove a building has no
+                        problems.
+                    </p>
+                </footer>
             </div>
         </div>
+
+        <div id="section" class="view">
+            <div class="section-shell">
+                <nav class="section-nav" aria-label="Helper navigation">
+                    <a id="back" href="#">All helpers</a>
+                    <span class="helper-status">Helper ready</span>
+                </nav>
+
+                <div class="helper-layout">
+                    <aside class="helper-intro">
+                        <section class="hero" aria-labelledby="section-headline">
+                            <div class="hero-content">
+                                <div class="icon" id="section-icon" aria-hidden="true"></div>
+                                <h2 id="section-headline"></h2>
+                                <p id="section-help"></p>
+
+                                <div class="row" id="prefs-row">
+                                    <div class="row-label">Choose your priorities</div>
+                                    <div class="chips" id="prefs"></div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="row-label">Or start with an example</div>
+                                    <div id="examples"></div>
+                                </div>
+                            </div>
+                        </section>
+                    </aside>
+
+                    <main class="chat" aria-label="Helper conversation">
+                        <div class="chat-head">
+                            <div class="chat-title-group">
+                                <div class="chat-avatar" id="chat-avatar" aria-hidden="true"></div>
+                                <div>
+                                    <span id="section-title"></span>
+                                    <span class="chat-subtitle">Ask a question and review the sources used</span>
+                                </div>
+                            </div>
+                            <button id="new-chat" type="button">New conversation</button>
+                        </div>
+
+                        <div id="messages-host"></div>
+
+                        <form id="input-area">
+                            <div class="input-shell">
+                                <input
+                                    type="text"
+                                    id="user-input"
+                                    autocomplete="off"
+                                    aria-label="Your question"
+                                />
+                            </div>
+                            <button id="send-btn" type="submit">Send</button>
+                        </form>
+                    </main>
+                </div>
+            </div>
+        </div>
+
         <script>
-            const messages = document.getElementById("messages");
+            // TEAM: edit this list to change a helper's text, examples or color.
+            // Set ready: true once that helper's tools are in tools.py; its card then becomes clickable.
+            const SECTIONS = [
+                {
+                    id: "apartments",
+                    ready: true,
+                    color: "teal",
+                    emoji: "\u{1F3E2}",
+                    title: "Apartments",
+                    blurb: "Check a building before you sign: violations, rats, bedbugs, the landlord, noise and the subway.",
+                    headline: "Which apartments are you deciding between?",
+                    help: "Give one address or several. It checks city records for each and ranks them by what matters to you.",
+                    placeholder: "e.g. Compare 600 W 113th St and 2880 Broadway, Manhattan",
+                    preferences: ["Quiet", "Close to the subway", "A responsible landlord", "No pests"],
+                    examples: [
+                        "Compare 600 W 113th St and 2880 Broadway in Manhattan.",
+                        "Who owns 600 W 113th St, Manhattan, and how do they treat their buildings?",
+                        "Is 2880 Broadway, Manhattan in good shape? Any rats?",
+                    ],
+                },
+                {
+                    id: "events",
+                    ready: false,
+                    color: "violet",
+                    emoji: "\u{1F39F}\u{FE0F}",
+                    title: "Free events",
+                    blurb: "Find free things to do around the city.",
+                    headline: "What do you feel like doing?",
+                    help: "Say when and where, and it looks for free events.",
+                    placeholder: "e.g. Free events this weekend near Columbia",
+                    preferences: [],
+                    examples: ["What free events are on this weekend?"],
+                },
+                {
+                    id: "gifts",
+                    ready: false,
+                    color: "coral",
+                    emoji: "\u{1F381}",
+                    title: "Gifts",
+                    blurb: "Gift ideas that fit the person and the budget.",
+                    headline: "Who is the gift for?",
+                    help: "Describe the person, the occasion and your budget.",
+                    placeholder: "e.g. A housewarming gift under $30 for my new roommate",
+                    preferences: [],
+                    examples: ["A housewarming gift under $30 for my new roommate."],
+                },
+            ];
+
+            // Friendly names for the tool calls shown above each answer.
+            const TOOL_LABELS = {
+                check_building: "Building records",
+                check_landlord: "Landlord records",
+                check_neighborhood: "Noise and subway",
+                get_weather: "Weather",
+            };
+
             const userInput = document.getElementById("user-input");
             const sendBtn = document.getElementById("send-btn");
-            let sessionId = null;
+            const messagesHost = document.getElementById("messages-host");
 
-            function addMessage(role, text, isLoading = false) {
-                const div = document.createElement("div");
-                div.className =
-                    "msg " +
-                    (role === "you" ? "user" : "assistant") +
-                    (isLoading ? " loading" : "");
-                div.innerHTML =
-                    '<div class="role">' +
-                    role +
-                    '</div><div class="content">' +
-                    text +
-                    "</div>";
-                messages.appendChild(div);
-                messages.scrollTop = messages.scrollHeight;
-                return div;
+            // Each helper keeps its own server session, messages and selected preferences.
+            const state = {};
+            for (const section of SECTIONS) {
+                const box = document.createElement("div");
+                box.className = "messages";
+                box.setAttribute("aria-live", "polite");
+                state[section.id] = {
+                    sessionId: null,
+                    box: box,
+                    chosen: new Set(),
+                };
+                showEmptyState(section);
             }
 
-            async function send() {
-                const text = userInput.value.trim();
-                if (!text) return;
+            let current = null;
+
+            function showEmptyState(section) {
+                const box = state[section.id].box;
+                box.innerHTML = "";
+
+                const message = document.createElement("p");
+                message.className = "empty";
+                message.textContent = "Type your own question below, or choose an example to get started.";
+                box.appendChild(message);
+            }
+
+            // Home
+
+            function renderHome() {
+                const cards = document.getElementById("cards");
+
+                for (const section of SECTIONS) {
+                    const card = document.createElement("button");
+                    card.type = "button";
+                    card.className = "card " + section.color;
+                    card.disabled = !section.ready;
+                    card.setAttribute(
+                        "aria-label",
+                        section.ready ? "Open " + section.title : section.title + ", coming soon",
+                    );
+
+                    card.innerHTML =
+                        '<div class="card-inner">' +
+                        '<div class="card-top">' +
+                        '<div class="icon" aria-hidden="true"></div>' +
+                        '<span class="status"></span>' +
+                        "</div>" +
+                        '<div class="card-copy"><h2></h2><p></p></div>' +
+                        '<div class="go"><span class="go-label"></span><span class="arrow" aria-hidden="true">→</span></div>' +
+                        "</div>";
+
+                    card.querySelector(".icon").textContent = section.emoji;
+                    card.querySelector(".status").textContent = section.ready ? "Ready" : "Soon";
+                    card.querySelector("h2").textContent = section.title;
+                    card.querySelector("p").textContent = section.blurb;
+                    card.querySelector(".go-label").textContent = section.ready ? "Open helper" : "Coming soon";
+
+                    if (!section.ready) {
+                        card.querySelector(".arrow").remove();
+                    }
+
+                    card.addEventListener("click", () => {
+                        location.hash = section.id;
+                    });
+
+                    cards.appendChild(card);
+                }
+            }
+
+            // Helper page
+
+            function openSection(section) {
+                current = section;
+
+                const page = document.getElementById("section");
+                page.className = "view active " + section.color;
+
+                document.getElementById("section-icon").textContent = section.emoji;
+                document.getElementById("chat-avatar").textContent = section.emoji;
+                document.getElementById("section-headline").textContent = section.headline;
+                document.getElementById("section-help").textContent = section.help;
+                document.getElementById("section-title").textContent = section.title;
+                userInput.placeholder = section.placeholder;
+                document.title = section.title + " | New in NYC";
+
+                const prefs = document.getElementById("prefs");
+                prefs.innerHTML = "";
+
+                document.getElementById("prefs-row").style.display = section.preferences.length ? "" : "none";
+
+                for (const preference of section.preferences) {
+                    const chip = document.createElement("button");
+                    chip.type = "button";
+                    chip.className = "chip";
+                    chip.textContent = preference;
+                    chip.setAttribute("aria-pressed", state[section.id].chosen.has(preference));
+
+                    chip.addEventListener("click", () => {
+                        const chosen = state[section.id].chosen;
+
+                        if (chosen.has(preference)) {
+                            chosen.delete(preference);
+                        } else {
+                            chosen.add(preference);
+                        }
+
+                        chip.setAttribute("aria-pressed", chosen.has(preference));
+                    });
+
+                    prefs.appendChild(chip);
+                }
+
+                const examples = document.getElementById("examples");
+                examples.innerHTML = "";
+
+                for (const example of section.examples) {
+                    const button = document.createElement("button");
+                    button.type = "button";
+                    button.className = "example";
+                    button.textContent = example;
+                    button.addEventListener("click", () => send(example));
+                    examples.appendChild(button);
+                }
+
+                messagesHost.innerHTML = "";
+                messagesHost.appendChild(state[section.id].box);
+            }
+
+            // The hash identifies the active helper. An empty or unavailable hash returns home.
+            function route() {
+                const section = SECTIONS.find(
+                    (candidate) => candidate.id === location.hash.slice(1) && candidate.ready,
+                );
+
+                document.getElementById("home").classList.toggle("active", !section);
+
+                if (section) {
+                    openSection(section);
+                    window.scrollTo(0, 0);
+                } else {
+                    document.getElementById("section").className = "view";
+                    document.title = "New in NYC";
+                    current = null;
+                }
+            }
+
+            // Safe Markdown rendering
+
+            function escapeHtml(text) {
+                return String(text)
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;");
+            }
+
+            // Text is escaped before any Markdown formatting is applied.
+            function inline(text) {
+                return escapeHtml(text)
+                    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+                    .replace(/\*([^*\n]+)\*/g, "<em>$1</em>")
+                    .replace(/`([^`\n]+)`/g, "<code>$1</code>");
+            }
+
+            function renderMarkdown(text) {
+                const html = [];
+                let listTag = null;
+                let paragraph = [];
+
+                const closeList = () => {
+                    if (listTag) {
+                        html.push("</" + listTag + ">");
+                    }
+                    listTag = null;
+                };
+
+                const closeParagraph = () => {
+                    if (paragraph.length) {
+                        html.push("<p>" + paragraph.join("<br>") + "</p>");
+                    }
+                    paragraph = [];
+                };
+
+                for (const line of String(text).split("\n")) {
+                    const heading = line.match(/^#{1,6}\s+(.*)$/);
+                    const bullet = line.match(/^\s*[*-]\s+(.*)$/);
+                    const numbered = line.match(/^\s*\d+\.\s+(.*)$/);
+
+                    if (heading) {
+                        closeParagraph();
+                        closeList();
+                        html.push("<h4>" + inline(heading[1]) + "</h4>");
+                    } else if (bullet || numbered) {
+                        closeParagraph();
+
+                        const tag = bullet ? "ul" : "ol";
+                        if (listTag !== tag) {
+                            closeList();
+                            html.push("<" + tag + ">");
+                            listTag = tag;
+                        }
+
+                        html.push("<li>" + inline((bullet || numbered)[1]) + "</li>");
+                    } else if (/^\s*-{3,}\s*$/.test(line)) {
+                        closeParagraph();
+                        closeList();
+                        html.push("<hr>");
+                    } else if (line.trim() === "") {
+                        closeParagraph();
+                        closeList();
+                    } else {
+                        closeList();
+                        paragraph.push(inline(line));
+                    }
+                }
+
+                closeParagraph();
+                closeList();
+                return html.join("");
+            }
+
+            function addMessage(box, role, text, isLoading = false) {
+                const empty = box.querySelector(".empty");
+                if (empty) {
+                    empty.remove();
+                }
+
+                const message = document.createElement("div");
+                message.className = "msg " + role + (isLoading ? " loading" : "");
+                message.textContent = text;
+
+                if (isLoading) {
+                    message.setAttribute("role", "status");
+                    message.setAttribute("aria-label", text);
+                }
+
+                box.appendChild(message);
+                box.scrollTop = box.scrollHeight;
+                return message;
+            }
+
+            // One expandable card is shown for every tool call.
+            function toolCard(call) {
+                let result =
+                    typeof call.result === "string"
+                        ? call.result
+                        : JSON.stringify(call.result, null, 2);
+
+                let failed = false;
+
+                try {
+                    const parsed =
+                        typeof call.result === "string"
+                            ? JSON.parse(call.result)
+                            : call.result;
+
+                    failed = Boolean(parsed && parsed.error);
+                    result = JSON.stringify(parsed, null, 2);
+                } catch (error) {
+                    // Non-JSON results are displayed as received.
+                }
+
+                const args = call.args || {};
+                const subject =
+                    args.address ||
+                    args.location ||
+                    (Object.keys(args).length ? JSON.stringify(args) : "No parameters");
+
+                const card = document.createElement("details");
+                card.className = "tool";
+
+                const summary = document.createElement("summary");
+
+                const label = document.createElement("span");
+                label.className = "label";
+                label.textContent = TOOL_LABELS[call.name] || call.name;
+
+                summary.appendChild(label);
+                summary.appendChild(document.createTextNode(": " + subject));
+
+                if (failed) {
+                    const note = document.createElement("span");
+                    note.className = "note";
+                    note.textContent = " (no result)";
+                    summary.appendChild(note);
+                }
+
+                const pre = document.createElement("pre");
+                pre.textContent =
+                    call.name +
+                    "(" +
+                    JSON.stringify(args) +
+                    ")\n" +
+                    (result == null ? "" : result);
+
+                card.appendChild(summary);
+                card.appendChild(pre);
+                return card;
+            }
+
+            // Server communication
+
+            async function send(text) {
+                text = (text || userInput.value).trim();
+
+                if (!text || sendBtn.disabled || !current) {
+                    return;
+                }
+
+                // Capture this helper so navigation during a request cannot mix conversations.
+                const mine = state[current.id];
+
+                if (mine.chosen.size) {
+                    text +=
+                        "\nWhat matters to me: " +
+                        Array.from(mine.chosen).join(", ").toLowerCase() +
+                        ".";
+                }
 
                 userInput.value = "";
                 sendBtn.disabled = true;
-                addMessage("you", text);
-                const loading = addMessage("assistant", "Thinking...", true);
+                mine.box.setAttribute("aria-busy", "true");
+
+                addMessage(mine.box, "user", text);
+                const loading = addMessage(
+                    mine.box,
+                    "assistant",
+                    "Checking the records",
+                    true,
+                );
 
                 try {
-                    const res = await fetch("/chat", {
+                    const response = await fetch("/chat", {
                         method: "POST",
-                        headers: { "Content-Type": "application/json" },
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
                         body: JSON.stringify({
                             message: text,
-                            session_id: sessionId,
+                            session_id: mine.sessionId,
                         }),
                     });
-                    const data = await res.json();
-                    sessionId = data.session_id;
 
-                    // Show each tool the harness ran, above the assistant's answer
-                    for (const call of data.tool_calls || []) {
-                        const div = document.createElement("div");
-                        div.className = "tool";
-                        const label = document.createElement("span");
-                        label.className = "label";
-                        label.textContent = "tool call  ";
-                        div.appendChild(label);
-                        div.appendChild(
-                            document.createTextNode(
-                                call.name + "(" + JSON.stringify(call.args) + ")\n→ " + call.result,
-                            ),
-                        );
-                        messages.insertBefore(div, loading);
+                    if (!response.ok) {
+                        throw new Error("The server returned " + response.status);
                     }
-                    loading.querySelector(".content").textContent =
-                        data.response;
-                    loading.classList.remove("loading");
-                } catch (e) {
-                    loading.querySelector(".content").textContent =
-                        "Error: " + e.message;
-                    loading.classList.remove("loading");
+
+                    const data = await response.json();
+                    mine.sessionId = data.session_id;
+
+                    for (const call of data.tool_calls || []) {
+                        mine.box.insertBefore(toolCard(call), loading);
+                    }
+
+                    loading.innerHTML = renderMarkdown(data.response || "");
+                } catch (error) {
+                    loading.textContent =
+                        "Something went wrong. Please try again. " + error.message;
                 }
+
+                loading.classList.remove("loading");
+                loading.removeAttribute("role");
+                loading.removeAttribute("aria-label");
+                mine.box.removeAttribute("aria-busy");
+                mine.box.scrollTop = mine.box.scrollHeight;
+
                 sendBtn.disabled = false;
-                userInput.focus();
+                userInput.focus({ preventScroll: true });
             }
 
-            sendBtn.addEventListener("click", send);
-            userInput.addEventListener("keydown", function (e) {
-                if (e.key === "Enter") send();
-            });
-            userInput.focus();
+            function newConversation() {
+                if (!current) {
+                    return;
+                }
+
+                const mine = state[current.id];
+
+                if (mine.sessionId) {
+                    fetch(
+                        "/clear?session_id=" + encodeURIComponent(mine.sessionId),
+                        { method: "POST" },
+                    ).catch(() => {});
+                }
+
+                mine.sessionId = null;
+                showEmptyState(current);
+                userInput.focus({ preventScroll: true });
+            }
+
+            document
+                .getElementById("input-area")
+                .addEventListener("submit", function (event) {
+                    event.preventDefault();
+                    send();
+                });
+
+            document
+                .getElementById("new-chat")
+                .addEventListener("click", newConversation);
+
+            window.addEventListener("hashchange", route);
+
+            renderHome();
+            route();
         </script>
     </body>
 </html>
