@@ -94,7 +94,9 @@ class ChatResponse(BaseModel):
 
 @app.get("/")
 def index():
-    return FileResponse(Path(__file__).parent / "index.html")
+    # "no-cache" makes a browser ask for the current page on every visit. Without it browsers kept
+    # showing a copy they had stored earlier, because the deployed file carries a date from 1980.
+    return FileResponse(Path(__file__).parent / "index.html", headers={"Cache-Control": "no-cache"})
 
 
 @app.post("/chat", response_model=ChatResponse)
