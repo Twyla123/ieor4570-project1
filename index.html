@@ -819,10 +819,15 @@
                     color 150ms ease;
             }
 
-            #new-chat:hover {
+            #new-chat:hover:not(:disabled) {
                 border-color: var(--c);
                 background: var(--c-soft);
                 color: var(--c-ink);
+            }
+
+            #new-chat:disabled {
+                opacity: 0.45;
+                cursor: default;
             }
 
             #messages-host {
@@ -958,6 +963,8 @@
 
             .tool {
                 align-self: flex-start;
+                /* Keep the card at full height: when the chat is longer than its box, the box scrolls. */
+                flex-shrink: 0;
                 width: min(94%, 39rem);
                 overflow: hidden;
                 border: 1px solid color-mix(in srgb, var(--c) 22%, var(--line));
@@ -1424,15 +1431,15 @@
                     color: "teal",
                     emoji: "\u{1F3E2}",
                     title: "Apartments",
-                    blurb: "Check a building before you sign: violations, rats, bedbugs, the landlord, noise and the subway.",
+                    blurb: "Check a building before you sign: violations, tenant complaints, rats, bedbugs, the landlord, noise and the subway.",
                     headline: "Which apartments are you deciding between?",
                     help: "Give one address or several. It checks city records for each and ranks them by what matters to you.",
-                    placeholder: "e.g. Compare 600 W 113th St and 2880 Broadway, Manhattan",
-                    preferences: ["Quiet", "Close to the subway", "A responsible landlord", "No pests"],
+                    placeholder: "e.g. Compare 600 W 113th St and 543 W 125th St, Manhattan",
+                    preferences: ["Quiet", "Close to the subway", "A responsible landlord", "No pests", "Reliable heat"],
                     examples: [
-                        "Compare 600 W 113th St and 2880 Broadway in Manhattan.",
+                        "Compare 600 W 113th St and 543 W 125th St in Manhattan.",
                         "Who owns 600 W 113th St, Manhattan, and how do they treat their buildings?",
-                        "Is 2880 Broadway, Manhattan in good shape? Any rats?",
+                        "Is 543 W 125th St, Manhattan in good shape? Any heat or pest problems?",
                     ],
                 },
                 {
@@ -1473,6 +1480,7 @@
 
             const userInput = document.getElementById("user-input");
             const sendBtn = document.getElementById("send-btn");
+            const newChatBtn = document.getElementById("new-chat");
             const messagesHost = document.getElementById("messages-host");
 
             // Each helper keeps its own server session, messages and selected preferences.
@@ -1485,6 +1493,7 @@
                     sessionId: null,
                     box: box,
                     chosen: new Set(),
+                    sentPreferences: "", // the preferences this conversation has already been told
                 };
                 showEmptyState(section);
             }
@@ -1786,15 +1795,19 @@
                 // Capture this helper so navigation during a request cannot mix conversations.
                 const mine = state[current.id];
 
-                if (mine.chosen.size) {
-                    text +=
-                        "\nWhat matters to me: " +
-                        Array.from(mine.chosen).join(", ").toLowerCase() +
-                        ".";
+                // The agent remembers the conversation, so the preferences go with the first
+                // question and again only when the user changes them.
+                const preferences = Array.from(mine.chosen).join(", ").toLowerCase();
+                if (preferences && preferences !== mine.sentPreferences) {
+                    text += "\nWhat matters to me: " + preferences + ".";
+                } else if (!preferences && mine.sentPreferences) {
+                    text += "\nI have no particular priorities now.";
                 }
 
                 userInput.value = "";
                 sendBtn.disabled = true;
+                // No new conversation while an answer is on its way: the late answer would bring the old session back.
+                newChatBtn.disabled = true;
                 mine.box.setAttribute("aria-busy", "true");
 
                 addMessage(mine.box, "user", text);
@@ -1823,6 +1836,7 @@
 
                     const data = await response.json();
                     mine.sessionId = data.session_id;
+                    mine.sentPreferences = preferences;
 
                     for (const call of data.tool_calls || []) {
                         mine.box.insertBefore(toolCard(call), loading);
@@ -1841,11 +1855,12 @@
                 mine.box.scrollTop = mine.box.scrollHeight;
 
                 sendBtn.disabled = false;
+                newChatBtn.disabled = false;
                 userInput.focus({ preventScroll: true });
             }
 
             function newConversation() {
-                if (!current) {
+                if (!current || sendBtn.disabled) {
                     return;
                 }
 
@@ -1859,6 +1874,7 @@
                 }
 
                 mine.sessionId = null;
+                mine.sentPreferences = "";
                 showEmptyState(current);
                 userInput.focus({ preventScroll: true });
             }

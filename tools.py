@@ -4,6 +4,8 @@ import json
 
 import requests
 
+from apartment import APARTMENT_TOOL_MAP, APARTMENT_TOOLS
+
 # Open-Meteo is free and needs no API key.
 GEOCODE_URL = "https://geocoding-api.open-meteo.com/v1/search"
 FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
@@ -28,16 +30,17 @@ def get_weather(location: str) -> str:
             },
             timeout=10,
         ).json()["current"]
-    except requests.RequestException as e:
-        # The model cannot see an exception. Return something it can reason about.
-        return json.dumps({"error": f"Weather service failed: {e}"})
 
-    return json.dumps({
-        "location": place["name"],
-        "temp_f": current["temperature_2m"],
-        "humidity": current["relative_humidity_2m"],
-        "wind_mph": current["wind_speed_10m"],
-    })
+        return json.dumps({
+            "location": place["name"],
+            "temp_f": current["temperature_2m"],
+            "humidity": current["relative_humidity_2m"],
+            "wind_mph": current["wind_speed_10m"],
+        })
+    except (requests.RequestException, KeyError, ValueError, TypeError) as e:
+        # The model cannot see an exception. Return something it can reason about.
+        # KeyError and the others cover an error reply from the weather service that lacks the expected fields.
+        return json.dumps({"error": f"Weather service failed: {type(e).__name__}: {e}"})
 
 
 # What the model sees: the "set notes" in the screenplay.
@@ -56,10 +59,11 @@ TOOLS = [
             },
         },
     },
+    *APARTMENT_TOOLS,  # check_building, check_landlord, check_neighborhood (apartment.py)
 ]
 
 # What the harness runs: tool name -> Python function.
-TOOL_MAP = {"get_weather": get_weather}
+TOOL_MAP = {"get_weather": get_weather, **APARTMENT_TOOL_MAP}
 
 
 def run_tool(name: str, args: dict) -> str:

@@ -1,5 +1,7 @@
 # Virtual environment. uv recreates it from pyproject.toml + uv.lock.
-.venv/
+# .venv is a link to .venv.nosync, which iCloud does not sync.
+.venv
+.venv.nosync/
 
 # Python bytecode
 __pycache__/

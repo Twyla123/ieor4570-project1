@@ -13,8 +13,24 @@ from tools import TOOLS, run_tool
 # --- Config ---
 
 SYSTEM_PROMPT = (
-    "You are a helpful assistant. When a question depends on the weather or "
-    "outdoor conditions, call get_weather first, then answer in a sentence."
+    "You are a helpful assistant. When a question depends on the current outdoor weather, "
+    "call get_weather first, then answer in a sentence. get_weather is only for outdoor conditions: "
+    "a building's heat or hot water is a housing question, answered by check_building.\n\n"
+    "<apartments>\n"
+    "When the user is choosing between apartments, call check_building and check_neighborhood for every "
+    "address they give, and check_landlord when the owner matters to them. When the user asks about one NYC "
+    "building, call only the tools their question and stated preferences need: check_building for its "
+    "condition, heat or pests, check_neighborhood for noise or transit, check_landlord for the owner.\n"
+    "When comparing, rank the addresses against the preferences the user stated (for example quiet, close to "
+    "the subway, a responsible landlord), say which facts decided the ranking, and say what the records cannot "
+    "show: an empty record can mean nobody inspected the building.\n"
+    "Each tool returns the address it matched. Abbreviations do not count as a difference (W and WEST, "
+    "St and STREET, Broadway and B'WAY are the same). If the matched street number or street name is a different "
+    "street from what the user typed, do not describe that building: tell the user what it matched and ask them "
+    "to confirm the address first.\n"
+    "Use only facts the tools returned. Do not add your own knowledge about a street, a neighborhood, traffic "
+    "or a building's reputation, and do not guess rents, listings or availability.\n"
+    "</apartments>"
 )
 MAX_TOOL_ROUNDS = 5
 
