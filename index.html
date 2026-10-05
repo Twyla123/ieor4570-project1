@@ -1444,16 +1444,20 @@
                 },
                 {
                     id: "events",
-                    ready: false,
+                    ready: true,
                     color: "violet",
                     emoji: "\u{1F39F}\u{FE0F}",
                     title: "Free events",
-                    blurb: "Find free things to do around the city.",
+                    blurb: "Free events, pop-ups and giveaways, plus a timed plan for your day with travel and wait estimates.",
                     headline: "What do you feel like doing?",
-                    help: "Say when and where, and it looks for free events.",
-                    placeholder: "e.g. Free events this weekend near Columbia",
-                    preferences: [],
-                    examples: ["What free events are on this weekend?"],
+                    help: "Say when and where you are starting. It checks NYC Parks and NYC for FREE listings, then builds a day plan.",
+                    placeholder: "e.g. Plan my Saturday afternoon from Columbia",
+                    preferences: ["Food and drinks", "Outdoors", "Indoors", "Music", "Art", "Kids"],
+                    examples: [
+                        "Plan my Saturday from Columbia University. I want free stuff and not too much walking.",
+                        "What free pop-ups and giveaways are happening this weekend in Brooklyn?",
+                        "How long will the line be at a free coffee pop-up on Saturday at noon?",
+                    ],
                 },
                 {
                     id: "gifts",
@@ -1476,6 +1480,13 @@
                 check_landlord: "Landlord records",
                 check_neighborhood: "Noise and subway",
                 get_weather: "Weather",
+                find_free_events: "NYC Parks events",
+                find_freebies: "NYC for FREE",
+                get_forecast: "Forecast",
+                estimate_wait_time: "Wait estimate",
+                build_itinerary: "Day plan",
+                curb_hunt_score: "Curb score",
+                freebie_checklist: "Hunt checklist",
             };
 
             const userInput = document.getElementById("user-input");
