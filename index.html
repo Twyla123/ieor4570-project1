@@ -1735,6 +1735,36 @@
                 return message;
             }
 
+            // A short subject for a tool card's title, whatever arguments the tool takes: a date range
+            // first, then the plain text values; a list is shown by its size. The full call stays inside the card.
+            function describeArguments(args) {
+                const parts = [];
+
+                if (args.start_date && args.end_date && args.start_date !== args.end_date) {
+                    parts.push(args.start_date + " to " + args.end_date);
+                } else if (args.start_date || args.end_date) {
+                    parts.push(args.start_date || args.end_date);
+                }
+
+                for (const [name, value] of Object.entries(args)) {
+                    if (name === "start_date" || name === "end_date") {
+                        continue;
+                    }
+
+                    if (Array.isArray(value)) {
+                        parts.push(value.length + " " + name);
+                    } else if (typeof value === "string" && value.trim()) {
+                        parts.push(value.trim());
+                    }
+                }
+
+                const text =
+                    parts.join(", ") ||
+                    (Object.keys(args).length ? JSON.stringify(args) : "No parameters");
+
+                return text.length > 90 ? text.slice(0, 87) + "..." : text;
+            }
+
             // One expandable card is shown for every tool call.
             function toolCard(call) {
                 let result =
@@ -1757,10 +1787,7 @@
                 }
 
                 const args = call.args || {};
-                const subject =
-                    args.address ||
-                    args.location ||
-                    (Object.keys(args).length ? JSON.stringify(args) : "No parameters");
+                const subject = args.address || args.location || describeArguments(args);
 
                 const card = document.createElement("details");
                 card.className = "tool";
