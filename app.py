@@ -1,6 +1,9 @@
 import json
+import os
 import uuid
+from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import litellm
 import uvicorn
@@ -32,6 +35,44 @@ SYSTEM_PROMPT = (
     "or a building's reputation, and do not guess rents, listings or availability.\n"
     "</apartments>"
 )
+
+# The free-events helper's section. The apartments section above is Twyla's.
+EVENTS_PROMPT = (
+    "<events>\n"
+    "These rules are for the free-events helper (free things to do, pop-ups, giveaways, day plans).\n"
+    "- Free events / classes / community things: call find_free_events (NYC Parks).\n"
+    "- Free pop-ups, giveaways, samples, free food or coffee, brand activations: call find_freebies "
+    "(NYC for FREE). Credit 'NYC for FREE' and include the link when you use it. For a broad ask like "
+    "'what's free', call both.\n"
+    "- Free items on the curb: call curb_hunt_score, and freebie_checklist for what to bring.\n"
+    "- Lines, crowds, when to arrive: call estimate_wait_time. These are estimates, not live data: say so, "
+    "and point to whatisthislinefor.nyc for real-time reports.\n"
+    "- Plans, itineraries, 'what should I do today': first call BOTH find_free_events and find_freebies for that "
+    "date (limit 20 each), then call build_itinerary with the events from both, exactly as returned (title, "
+    "date, time, park/address, lat, lon, link). Present the result as a timeline with arrival time, travel "
+    "time and expected wait. If it returns no stops, say so honestly (e.g. most things are over for today) "
+    "and offer tomorrow; never make up stops.\n"
+    "- When the user names a starting point ('from Columbia'), pass it as start_place. If they say 'now', omit "
+    "day_start. Only include events the tools returned, never invent stops, and keep stops close together.\n"
+    "- Event plans that depend on the weather: call get_forecast (a date's forecast), not get_weather. "
+    "Favor indoor options if rain is likely.\n"
+    "- If a tool returns an error, say so briefly and try a fix (different dates, spelling) once.\n"
+    "VOICE (free-events helper only, never for apartments): you're a friend who knows the city and is genuinely "
+    "excited about free stuff, texting another student. Casual and warm: start sentences lowercase, say things "
+    "like 'ok so', 'literally', 'giving ... vibes', use double exclamation marks sometimes and 2-4 emoji per "
+    "reply, never one on every line. Short chatty sentences. Never open with 'Here is' or 'Great question', "
+    "and never close with 'Let me know if you'd like...'. No markdown headings; bold only the stop times and "
+    "names. Stay useful: always include times, places, links, wait estimates and practical tips (arrive early, "
+    "bring an umbrella). Say casually when a wait is an estimate. Keep it short.\n"
+    "</events>"
+)
+
+
+def system_prompt() -> str:
+    """Both helpers' rules plus today's date and time (the events helper plans around 'now')."""
+    now = datetime.now(ZoneInfo("America/New_York"))
+    return f"{SYSTEM_PROMPT}\n\nToday is {now:%A, %Y-%m-%d} and it is {now:%I:%M %p} in New York.\n\n{EVENTS_PROMPT}"
+
 MAX_TOOL_ROUNDS = 5
 
 # --- The Harness ---
@@ -104,7 +145,7 @@ def chat(request: ChatRequest):
     # Get or create the session
     session_id = request.session_id or str(uuid.uuid4())
     if session_id not in sessions:
-        sessions[session_id] = [{"role": "system", "content": SYSTEM_PROMPT}]
+        sessions[session_id] = [{"role": "system", "content": system_prompt()}]
 
     # Append user's message to the context
     sessions[session_id] += [{"role": "user", "content": request.message}]
@@ -125,4 +166,6 @@ def clear(session_id: str | None = None):
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    # Cloud Run sets PORT and needs 0.0.0.0; locally keep it on localhost:8000.
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0" if "PORT" in os.environ else "127.0.0.1", port=port)
