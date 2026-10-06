@@ -6,6 +6,7 @@ import requests
 
 from apartment import APARTMENT_TOOL_MAP, APARTMENT_TOOLS
 from events import EVENTS_TOOL_MAP, EVENTS_TOOLS
+from shopping import SHOPPING_TOOL, search_products_that_fit
 
 # Open-Meteo is free and needs no API key.
 GEOCODE_URL = "https://geocoding-api.open-meteo.com/v1/search"
@@ -62,10 +63,11 @@ TOOLS = [
     },
     *APARTMENT_TOOLS,  # check_building, check_landlord, check_neighborhood (apartment.py)
     *EVENTS_TOOLS,  # find_free_events, find_freebies, get_forecast, curb_hunt_score, estimate_wait_time, build_itinerary, freebie_checklist (events.py)
+    SHOPPING_TOOL, #  search_products_that_fit (shopping.py)
 ]
 
 # What the harness runs: tool name -> Python function.
-TOOL_MAP = {"get_weather": get_weather, **APARTMENT_TOOL_MAP, **EVENTS_TOOL_MAP}
+TOOL_MAP = {"get_weather": get_weather, **APARTMENT_TOOL_MAP, **EVENTS_TOOL_MAP,"search_products_that_fit": search_products_that_fit,}
 assert len(TOOL_MAP) == len(TOOLS), "two tools share a name"
 
 

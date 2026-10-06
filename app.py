@@ -67,11 +67,25 @@ EVENTS_PROMPT = (
     "</events>"
 )
 
+SHOPPING_PROMPT = (
+    "<shopping>\n"
+    "These rules are for the shopping helper (buying furniture or other things for a new home).\n"
+    "- When the user wants to buy something, call search_products_that_fit with a short query and their "
+    "budget. If they gave no budget, ask for one before calling.\n"
+    "- Pass max_width_in, max_depth_in or max_height_in only for measurements the user gave, converted to "
+    "inches. A room's area (e.g. 300 sq ft) is not a size limit: ask how much wall or floor space the item can take.\n"
+    "- List each product with its price, size, the fit verdict and its link. Say plainly when a fit is "
+    "'maybe' or 'unknown', and never invent products, prices or sizes the tool did not return.\n"
+    "- If the tool returns an error or no products, tell the user what it said and suggest the fix it names.\n"
+    "- Use a plain, friendly tone here, not the free-events voice.\n"
+    "</shopping>"
+)
+
 
 def system_prompt() -> str:
     """Both helpers' rules plus today's date and time (the events helper plans around 'now')."""
     now = datetime.now(ZoneInfo("America/New_York"))
-    return f"{SYSTEM_PROMPT}\n\nToday is {now:%A, %Y-%m-%d} and it is {now:%I:%M %p} in New York.\n\n{EVENTS_PROMPT}"
+    return f"{SYSTEM_PROMPT}\n\nToday is {now:%A, %Y-%m-%d} and it is {now:%I:%M %p} in New York.\n\n{EVENTS_PROMPT}\n\n{SHOPPING_PROMPT}"
 
 MAX_TOOL_ROUNDS = 5
 

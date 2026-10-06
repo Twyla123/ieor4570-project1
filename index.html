@@ -1459,18 +1459,22 @@
                         "How long will the line be at a free coffee pop-up on Saturday at noon?",
                     ],
                 },
-                {
-                    id: "gifts",
-                    ready: false,
+                                {
+                    id: "shopping",
+                    ready: true,
                     color: "coral",
-                    emoji: "\u{1F381}",
-                    title: "Gifts",
-                    blurb: "Gift ideas that fit the person and the budget.",
-                    headline: "Who is the gift for?",
-                    help: "Describe the person, the occasion and your budget.",
-                    placeholder: "e.g. A housewarming gift under $30 for my new roommate",
+                    emoji: "\u{1F6CB}\u{FE0F}",
+                    title: "Furnish",
+                    blurb: "Find furniture on Amazon that fits your space and your budget.",
+                    headline: "What do you need for your new place?",
+                    help: "Say what you want, your budget, and how much space you have. It searches Amazon and checks each product's size against your measurements.",
+                    placeholder: "e.g. A standing desk under $200, at most 48 inches wide",
                     preferences: [],
-                    examples: ["A housewarming gift under $30 for my new roommate."],
+                    examples: [
+                        "I need a standing desk under $200. My wall space is 48 inches wide and 24 inches deep.",
+                        "Find a bookshelf under $80 that is at most 30 inches wide and 72 inches tall.",
+                        "A small dining table under $150 for two people.",
+                    ],
                 },
             ];
 
@@ -1487,6 +1491,7 @@
                 build_itinerary: "Day plan",
                 curb_hunt_score: "Curb score",
                 freebie_checklist: "Hunt checklist",
+                search_products_that_fit: "Shopping search"
             };
 
             const userInput = document.getElementById("user-input");
@@ -1653,6 +1658,10 @@
             // Text is escaped before any Markdown formatting is applied.
             function inline(text) {
                 return escapeHtml(text)
+                    .replace(
+                        /\[([^\]]+)\]\((https?:\/\/[^\s)"']+)\)/g,
+                        '<a href="$2" target="_blank" rel="noopener">$1</a>',
+                    )
                     .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
                     .replace(/\*([^*\n]+)\*/g, "<em>$1</em>")
                     .replace(/`([^`\n]+)`/g, "<code>$1</code>");
